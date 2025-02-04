@@ -33,22 +33,33 @@ void resume_game(){
 }
 void print_weapon(){
     mvprintw(1,3,"Here you can see the number of your weapons.");
-    if (user.weapon=='0')mvprintw(3,3, "You have no weapon in hand currently");
+    if (user.weapon=='0')mvprintw(2,3, "You have no weapon in hand currently");
     else mvprintw(2,3, "Your current weeapon is %c", user.weapon);
+    mvprintw(4,3,"Press Q to put the weapon in the backpack");
 
-    mvprintw(4,3, "shortrange weapons: ");
-    mvprintw(4, 30, "longrange weapons:");
+    mvprintw(5,3, "shortrange weapons: ");
+    mvprintw(5, 30, "longrange weapons:");
     
-    mvprintw (5,30, "|Dagger (D): %d ", user.selah[0]);
+    mvprintw (6,30, "| Dagger (D): %d ", user.selah[0]);
     
-    mvprintw (5,3, "|Mace (M): ");
+    mvprintw (6,3, "| Mace (M): ");
     if (user.selah[1]>0) printw("Yes");
     else printw("No");
-    mvprintw (6,30, "|Magic wand (W): %d", user.selah[2]);
-    mvprintw (7,30, "|Normal Arrow (N): %d", user.selah[3]);
-    mvprintw (6,3, "|Sword (S): ");
+    mvprintw (7,30, "| Magic wand (W): %d", user.selah[2]);
+    mvprintw (8,30, "| Normal Arrow (N): %d", user.selah[3]);
+    mvprintw (7,3, "| Sword (S): ");
     if (user.selah[4]>0) printw("Yes");
     else printw("No");
+}
+
+void print_potion(){
+
+    mvprintw(1,3,"Here you can see the number of your potions.");
+    mvprintw(2,3, "Press Q to take a potion");
+    mvprintw(5,3, "| Health potion(H): %d", user.potion[0]);
+    mvprintw(6,3, "| Damage potion(C): %d", user.potion[1]);
+    mvprintw(7,3, "| Speed potion(V): %d", user.potion[2]);
+
 }
 int compare_users(const void *a, const void *b) {
     User *userA = (User *)a;
@@ -66,7 +77,8 @@ void scorboard(const char *file_path) {
     mvprintw(5, 15, "username");
     mvprintw(5, 40, "total_gold");
     mvprintw(5, 55, "experience");
-    mvprintw(6, 5, "---------------------------------------");
+    mvprintw(5,75, "total credit");
+    mvprintw(6, 5, "---------------------------------------------------------------------------");
 
     User users[250];
     int user_count = 0;
@@ -75,9 +87,9 @@ void scorboard(const char *file_path) {
     char line[256];
     while (fgets(line, sizeof(line), file)) {
         User user1;
-        sscanf(line, "%49[^,],%49[^,],%99[^,],%d,%d",
+        sscanf(line, "%49[^,],%49[^,],%99[^,],%d,%d,%d",
                user1.username, user1.password, user.email, 
-               &user1.gold, &user1.finished_games);
+               &user1.gold, &user1.finished_games,&user1.credit);
         users[user_count++] = user1;
     }
     fclose(file);
@@ -107,6 +119,7 @@ void scorboard(const char *file_path) {
         if (i==2 )printw(" (Runner_up II🏅)");
         mvprintw(i + 7, 40, "%d", users[i].gold); 
         mvprintw(i + 7, 55, "%d", users[i].finished_games); 
+        mvprintw(i+7, 75, "%d", users[i].credit);
 
    if ( strcmp(users[i].username, name)==0)attroff(A_BLINK);
         if (i==0){
@@ -126,6 +139,78 @@ void scorboard(const char *file_path) {
 
 
 void setting (){
+    int val=1;
+    while(val){
+        mvprintw(3,3, "choose the difficulty level of the game");
+        mvprintw(4,3, "1: Easy");
+        mvprintw(5,3, "2: Normal");
+        mvprintw(6,3, "3: Hard");
+        mvprintw(7,3,"Enter the number:");
+        int how;
+        scanw("%d", &how);
+        switch (how)
+        {
+        case 1:
+            user.life=70;
+            val=0;
+            break;
+        case 2: 
+            user.life=50;
+            val=0;
+            break;
+        case 3:
+            user.life=30;
+            val=0;
+            break;
+
+        default:
+            mvprintw (9,3,"Invalid command. try again");
+            getch();
+            clear();
+            refresh();
+            break;
+        }
+    } 
+    val=1;
+    while(val){
+    mvprintw(3,50, "choose the color of your character");
+    mvprintw(4,50, "1: blue");
+    mvprintw(5,50, "2: yellow");
+    mvprintw(6,50, "3: green");
+    mvprintw(7,50, "4:white");
+
+    mvprintw(8,50,"Enter the number:");
+    int how;
+    scanw("%d", &how);
+    switch (how)
+    {
+    case 1:
+        user.color='b';
+        val=0;
+        break;
+    case 2: 
+        user.color='y';
+        val=0;
+        break;
+    case 3:
+        user.color='g';
+        val=0;
+        break;
+    case 4:
+        user.color='w';
+        val=0;
+        break;
+
+    default:
+        mvprintw (10,50,"Invalid command. try again");
+        getch();
+        clear();
+        //refresh();
+        break;
+    }
+    }
+
+
     return ;
 }
 
@@ -145,27 +230,34 @@ int is_username_taken_before(const char *username, const char *file_path) {
     return 0;
 }
 
-int tatabogh (User user, const char* file_path){
-    FILE *file= fopen(file_path, "r");
-    char line[200];
-    char saved_name[50];
-    char saved_pass[50];
-    rewind (file);
-    while (fgets(line, sizeof(line), file)){
-        sscanf(line, "%49[^,], %49[^,]", saved_name, saved_pass);
-        strtok(saved_name, "\n");
-        strtok(saved_pass, "\n");
-        if (strcmp(user.username, saved_name)==0 && strcmp(user.password, saved_pass)==0){
-        fclose (file);
-        return 1;
+int tatabogh( const char *file_path) {
+    FILE *file = fopen(file_path, "r");
+    
+    char line[256];
+    char saved_name[50], saved_pass[50], saved_email[100];
+    int gold, age, score; 
+
+    while (fgets(line, sizeof(line), file)) {
+        sscanf(line, "%49[^,],%49[^,],%99[^,],%d,%d,%d", saved_name, saved_pass, saved_email, &gold, &age, &score);
+
+        saved_name[strcspn(saved_name, "\n")] = '\0';
+        saved_pass[strcspn(saved_pass, "\n")] = '\0';
+        saved_email[strcspn(saved_email, "\n")] = '\0';
+
+        if (strcmp(user.username, saved_name) == 0 && strcmp(user.password, saved_pass) == 0) {
+          
+            strcpy(user.email, saved_email);
+            user.finished_games=age;
+            user.credit=score;
+            fclose(file);
+            return 1;
         }
     }
-    
-    
+
     fclose(file);
     return 0;
-
 }
+
 
 int is_email_valid(char *email) {
     const char *at = strchr(email, '@');
@@ -204,93 +296,104 @@ int is_username_taken(const char *username, const char *file_path) {
 void save_user(const User *user, const char *file_path) {
     FILE *file = fopen(file_path, "a");
     if (file) {
-        fprintf(file, "%s,%s,%s,%d,%d,%d\n", user->username, user->password, user->email, user->gold, user->finished_games, user->life);
+        fprintf(file, "%s,%s,%s,%d,%d,%d\n", user->username, user->password, user->email, user->gold, user->finished_games, user->credit);
         fclose(file);
     }
 }
 
 void monsfollowh(int nowposx, int nowposy){
     if (whole_rooms[nowposx-5-1][nowposy][user.floor].monster.mname!='0' && whole_rooms[nowposx-5-1][nowposy-1][user.floor].type!='|' && (whole_rooms[nowposx-5-1][nowposy][user.floor].monster.mname=='s' || whole_rooms[nowposx-5-1][nowposy][user.floor].monster.movement<5)){
+        
         whole_rooms[nowposx-5-1][nowposy-1][user.floor].monster=whole_rooms[nowposx-5-1][nowposy][user.floor].monster;
         whole_rooms[nowposx-5-1][nowposy][user.floor].monster.mname='0';
         whole_rooms[nowposx-5-1][nowposy-1][user.floor].monster.movement++;
         user.life--;
+        mvprintw(1,3, "You were hurt by the enemy!");
     }
     if (whole_rooms[nowposx-5][nowposy-1][user.floor].monster.mname!='0' && whole_rooms[nowposx-5][nowposy-1-1][user.floor].type!='|' && (whole_rooms[nowposx-5][nowposy-1][user.floor].monster.mname=='s' || whole_rooms[nowposx-5][nowposy-1][user.floor].monster.movement<5)){
         whole_rooms[nowposx-5][nowposy-1-1][user.floor].monster=whole_rooms[nowposx-5-1][nowposy-1][user.floor].monster;
         whole_rooms[nowposx-5][nowposy-1][user.floor].monster.mname='0';
         whole_rooms[nowposx-5][nowposy-1-1][user.floor].monster.movement++;
         user.life--;
+        mvprintw(1,3, "You were hurt by the enemy!");
     }
     if (whole_rooms[nowposx-5+1][nowposy][user.floor].monster.mname!='0' &&  whole_rooms[nowposx-5+1][nowposy-1][user.floor].type!='|' && (whole_rooms[nowposx-5+1][nowposy][user.floor].monster.mname=='s' || whole_rooms[nowposx-5+1][nowposy][user.floor].monster.movement<5)){
         whole_rooms[nowposx-5+1][nowposy-1][user.floor].monster=whole_rooms[nowposx-5+1][nowposy][user.floor].monster;
         whole_rooms[nowposx-5+1][nowposy][user.floor].monster.mname='0';
         whole_rooms[nowposx-5+1][nowposy-1][user.floor].monster.movement++;
         user.life--;
+        mvprintw(1,3, "You were hurt by the enemy!");
     }
     if (whole_rooms[nowposx-5][nowposy+1][user.floor].monster.mname!='0' && (whole_rooms[nowposx-5][nowposy+1][user.floor].monster.mname=='s' || whole_rooms[nowposx-5][nowposy+1][user.floor].monster.movement<5)){
         whole_rooms[nowposx-5][nowposy][user.floor].monster=whole_rooms[nowposx-5][nowposy+1][user.floor].monster;
         whole_rooms[nowposx-5][nowposy+1][user.floor].monster.mname='0';
         whole_rooms[nowposx-5][nowposy][user.floor].monster.movement++;
         user.life--;
+        mvprintw(1,3, "You were hurt by the enemy!");
     }
     print_map(whole_rooms, user.floor);
     
 }
-
 void monsfollowl(int nowposx, int nowposy){
     if (whole_rooms[nowposx-5-1][nowposy][user.floor].monster.mname!='0' && whole_rooms[nowposx-5-1][nowposy+1][user.floor].type!='|' && (whole_rooms[nowposx-5-1][nowposy][user.floor].monster.mname=='s' || whole_rooms[nowposx-5-1][nowposy][user.floor].monster.movement<5)){
         whole_rooms[nowposx-5-1][nowposy+1][user.floor].monster=whole_rooms[nowposx-5-1][nowposy][user.floor].monster;
         whole_rooms[nowposx-5-1][nowposy][user.floor].monster.mname='0';
         whole_rooms[nowposx-5-1][nowposy+1][user.floor].monster.movement++;
         user.life--;
+        mvprintw(1,3, "You were hurt by the enemy!");
     }
     if (whole_rooms[nowposx-5][nowposy-1][user.floor].monster.mname!='0' &&  whole_rooms[nowposx-5][nowposy-1+1][user.floor].type!='|' && (whole_rooms[nowposx-5][nowposy-1][user.floor].monster.mname=='s' || whole_rooms[nowposx-5][nowposy-1][user.floor].monster.movement<5)){
         whole_rooms[nowposx-5][nowposy-1+1][user.floor].monster=whole_rooms[nowposx-5-1][nowposy-1][user.floor].monster;
         whole_rooms[nowposx-5][nowposy-1][user.floor].monster.mname='0';
         whole_rooms[nowposx-5][nowposy-1+1][user.floor].monster.movement++;
         user.life--;
+        mvprintw(1,3, "You were hurt by the enemy!");
     }
     if (whole_rooms[nowposx-5+1][nowposy][user.floor].monster.mname!='0' && whole_rooms[nowposx-5+1][nowposy+1][user.floor].type!='|' && (whole_rooms[nowposx-5+1][nowposy][user.floor].monster.mname=='s' || whole_rooms[nowposx-5+1][nowposy][user.floor].monster.movement<5)){
         whole_rooms[nowposx-5+1][nowposy+1][user.floor].monster=whole_rooms[nowposx-5+1][nowposy][user.floor].monster;
         whole_rooms[nowposx-5+1][nowposy][user.floor].monster.mname='0';
         whole_rooms[nowposx-5+1][nowposy+1][user.floor].monster.movement++;
         user.life--;
+        mvprintw(1,3, "You were hurt by the enemy!");
     }
     if (whole_rooms[nowposx-5][nowposy+1][user.floor].monster.mname!='0' && (whole_rooms[nowposx-5][nowposy+1][user.floor].monster.mname=='s' || whole_rooms[nowposx-5][nowposy+1][user.floor].monster.movement<5)){
         whole_rooms[nowposx-5][nowposy+1+1][user.floor].monster=whole_rooms[nowposx-5][nowposy+1][user.floor].monster;
         whole_rooms[nowposx-5][nowposy+1][user.floor].monster.mname='0';
         whole_rooms[nowposx-5][nowposy+1+1][user.floor].monster.movement++;
         user.life--;
+        mvprintw(1,3, "You were hurt by the enemy!");
     }
     print_map(whole_rooms, user.floor);
     
 }
-
 void monsfollowj(int nowposx, int nowposy){
     if (whole_rooms[nowposx-5-1][nowposy][user.floor].monster.mname!='0' && whole_rooms[nowposx-5-1-1][nowposy][user.floor].type!='_'  &&(whole_rooms[nowposx-5-1][nowposy][user.floor].monster.mname=='s' || whole_rooms[nowposx-5-1][nowposy][user.floor].monster.movement<5)){
         whole_rooms[nowposx-5-1-1][nowposy][user.floor].monster=whole_rooms[nowposx-5-1][nowposy][user.floor].monster;
         whole_rooms[nowposx-5-1][nowposy][user.floor].monster.mname='0';
         whole_rooms[nowposx-5-1-1][nowposy][user.floor].monster.movement++;
         user.life--;
+        mvprintw(1,3, "You were hurt by the enemy!");
     }
     if (whole_rooms[nowposx-5][nowposy-1][user.floor].monster.mname!='0' && whole_rooms[nowposx-5-1][nowposy-1][user.floor].type!='_' && (whole_rooms[nowposx-5][nowposy-1][user.floor].monster.mname=='s' || whole_rooms[nowposx-5][nowposy-1][user.floor].monster.movement<5)){
         whole_rooms[nowposx-5-1][nowposy-1][user.floor].monster=whole_rooms[nowposx-5-1][nowposy-1][user.floor].monster;
         whole_rooms[nowposx-5][nowposy-1][user.floor].monster.mname='0';
         whole_rooms[nowposx-5-1][nowposy-1][user.floor].monster.movement++;
         user.life--;
+        mvprintw(1,3, "You were hurt by the enemy!");
     }
     if (whole_rooms[nowposx-5+1][nowposy][user.floor].monster.mname!='0' && whole_rooms[nowposx-5][nowposy][user.floor].type!='_' && (whole_rooms[nowposx-5+1][nowposy][user.floor].monster.mname=='s' || whole_rooms[nowposx-5+1][nowposy][user.floor].monster.movement<5)){
         whole_rooms[nowposx-5][nowposy][user.floor].monster=whole_rooms[nowposx-5+1][nowposy][user.floor].monster;
         whole_rooms[nowposx-5+1][nowposy][user.floor].monster.mname='0';
         whole_rooms[nowposx-5][nowposy][user.floor].monster.movement++;
         user.life--;
+        mvprintw(1,3, "You were hurt by the enemy!");
     }
     if (whole_rooms[nowposx-5][nowposy+1][user.floor].monster.mname!='0' && whole_rooms[nowposx-5-1][nowposy+1][user.floor].type!='_' && (whole_rooms[nowposx-5][nowposy+1][user.floor].monster.mname=='s' || whole_rooms[nowposx-5][nowposy+1][user.floor].monster.movement<5)){
         whole_rooms[nowposx-5-1][nowposy+1][user.floor].monster=whole_rooms[nowposx-5][nowposy+1][user.floor].monster;
         whole_rooms[nowposx-5][nowposy+1][user.floor].monster.mname='0';
         whole_rooms[nowposx-5-1][nowposy+1][user.floor].monster.movement++;
         user.life--;
+        mvprintw(1,3, "You were hurt by the enemy!");
     }
     print_map(whole_rooms, user.floor);
     
@@ -301,34 +404,33 @@ void monsfollowk(int nowposx, int nowposy){
         whole_rooms[nowposx-5-1][nowposy][user.floor].monster.mname='0';
         whole_rooms[nowposx-5-1+1][nowposy][user.floor].monster.movement++;
         user.life--;
+        mvprintw(1,3, "You were hurt by the enemy!");
     }
     if (whole_rooms[nowposx-5][nowposy-1][user.floor].monster.mname!='0' && whole_rooms[nowposx-5+1][nowposy-1][user.floor].type!='_' && (whole_rooms[nowposx-5][nowposy-1][user.floor].monster.mname=='s' || whole_rooms[nowposx-5][nowposy-1][user.floor].monster.movement<5)){
         whole_rooms[nowposx-5+1][nowposy-1][user.floor].monster=whole_rooms[nowposx-5-1][nowposy-1][user.floor].monster;
         whole_rooms[nowposx-5][nowposy-1][user.floor].monster.mname='0';
         whole_rooms[nowposx-5+1][nowposy-1][user.floor].monster.movement++;
         user.life--;
+        mvprintw(1,3, "You were hurt by the enemy!");
     }
     if (whole_rooms[nowposx-5+1][nowposy][user.floor].monster.mname!='0' && whole_rooms[nowposx-5+2][nowposy][user.floor].type!='_' && (whole_rooms[nowposx-5+1][nowposy][user.floor].monster.mname=='s' || whole_rooms[nowposx-5+1][nowposy][user.floor].monster.movement<5)){
         whole_rooms[nowposx-5+2][nowposy][user.floor].monster=whole_rooms[nowposx-5+1][nowposy][user.floor].monster;
         whole_rooms[nowposx-5+1][nowposy][user.floor].monster.mname='0';
         whole_rooms[nowposx-5+2][nowposy][user.floor].monster.movement++;
         user.life--;
+        mvprintw(1,3, "You were hurt by the enemy!");
     }
     if (whole_rooms[nowposx-5][nowposy+1][user.floor].monster.mname!='0' && whole_rooms[nowposx-5+1][nowposy+1][user.floor].type!='_' && (whole_rooms[nowposx-5][nowposy+1][user.floor].monster.mname=='s' || whole_rooms[nowposx-5][nowposy+1][user.floor].monster.movement<5)){
         whole_rooms[nowposx-5+1][nowposy+1][user.floor].monster=whole_rooms[nowposx-5][nowposy+1][user.floor].monster;
         whole_rooms[nowposx-5][nowposy+1][user.floor].monster.mname='0';
         whole_rooms[nowposx-5+1][nowposy+1][user.floor].monster.movement++;
         user.life--;
+        mvprintw(1,3, "You were hurt by the enemy!");
     }
     print_map(whole_rooms, user.floor);
     
 }
-
-
-
-
 void creat_user() {
-    User user= {"jhjhjh","","",0,0,0,0,0,""};
     char file_path[] = "users.txt";
     char error_message[100] = "";
     int valid = 0;
@@ -382,11 +484,15 @@ void creat_user() {
         }
         
         valid = 1;
-    }   user.gold=0;
+    }   
+    user.gold=0;
         user.finished_games=0;
         user.food=0;
         user.life=50;
         user.weapon='M';
+        user.floor=0;
+        user.credit=0;
+
         
 
     
@@ -407,7 +513,6 @@ int max (int a, int b){
         return b;
     }
 }
-
 int min (int a, int b){
     if (a<b){
         return a;
@@ -416,12 +521,13 @@ int min (int a, int b){
         return b;
     }
 }
-
 void print_map(newpoint whole_rooms[40][184][4],int s){
      start_color();
     init_pair(1, COLOR_RED, COLOR_BLACK); 
     init_pair(2, COLOR_GREEN, COLOR_BLACK);
     init_pair(3, COLOR_YELLOW, COLOR_BLACK);
+    init_pair(4,COLOR_BLUE, COLOR_BLACK);
+    init_pair(5, COLOR_WHITE, COLOR_BLACK);
     for (int i=0; i<40; i++){
         for (int j=0; j<184; j++){
             if (whole_rooms[i][j][s].being==1){
@@ -429,7 +535,10 @@ void print_map(newpoint whole_rooms[40][184][4],int s){
                 if (whole_rooms[i][j][s].model=='E')attron(COLOR_PAIR(2));
                 if (whole_rooms[i][j][s].type=='R')attron(COLOR_PAIR(3));
                 if (whole_rooms[i][j][s].type=='r')attron(COLOR_PAIR(3));
-                
+                if (whole_rooms[i][j][s].type=='@' && user.color=='b')attron(COLOR_PAIR(4));
+                if (whole_rooms[i][j][s].type=='@' && user.color=='y')attron(COLOR_PAIR(3));
+                if (whole_rooms[i][j][s].type=='@' && user.color=='w')attron(COLOR_PAIR(5));
+                if (whole_rooms[i][j][s].type=='@' && user.color=='g')attron(COLOR_PAIR(2));
 
                 mvprintw(i+5, j, "%c", whole_rooms[i][j][s].type);
                 if (whole_rooms[i][j][s].monster.mname!='0'){
@@ -438,7 +547,11 @@ void print_map(newpoint whole_rooms[40][184][4],int s){
                 if (whole_rooms[i][j][s].model=='T')attroff(COLOR_PAIR(1));
                 if (whole_rooms[i][j][s].model=='E')attroff(COLOR_PAIR(2));
                 if (whole_rooms[i][j][s].type=='R')attroff(COLOR_PAIR(3));
-               if (whole_rooms[i][j][s].type=='r')attroff(COLOR_PAIR(3));
+                if (whole_rooms[i][j][s].type=='r')attroff(COLOR_PAIR(3));
+                if (whole_rooms[i][j][s].type=='@' && user.color=='b')attroff(COLOR_PAIR(4));
+                if (whole_rooms[i][j][s].type=='@' && user.color=='y')attroff(COLOR_PAIR(3));
+                if (whole_rooms[i][j][s].type=='@' && user.color=='w')attroff(COLOR_PAIR(5));
+                if (whole_rooms[i][j][s].type=='@' && user.color=='g')attroff(COLOR_PAIR(2));
                 
 
             }
@@ -448,13 +561,56 @@ void print_map(newpoint whole_rooms[40][184][4],int s){
     }
 
 }
-
-
 void makemap(){   
     initscr();
-    //memset(whole_rooms, ' ', sizeof(whole_rooms));
-    //creat_user();
+
     srand(time(NULL));
+
+    /*for (int i=0; i<40; i++){
+        for (int j=0; j<184; j++){
+            whole_rooms[i][j][4].type=' ';
+            whole_rooms[i][j][4].being=1;
+            whole_rooms[i][j][4].model='T';
+            whole_rooms[i][j][4].trap=0;
+            whole_rooms[i][j][4].monster.mname='0';
+        }
+    }
+    for (int i=0; i<40; i++){
+        whole_rooms[10][i+50][4].type='_';
+        whole_rooms[30][i+50][4].type='_';
+    }
+    for (int i=0; i<20; i++){
+        whole_rooms[11+i][49][4].type='|';
+        whole_rooms[11+i][91][4].type='|';
+    }
+    for (int i=11; i<30; i++){
+        for (int j=51; j<90; j++){
+            whole_rooms[i][j][4].type='.';
+        }
+    }
+
+    for (int i=0; i<100; i++){
+        whole_rooms[rand()%16+12][rand()%36+53][4].trap=1;
+    }
+    for(int i=0; i<2; i++){
+        whole_rooms[rand()%16+12][rand()%36+53][4].monster.mname='d';
+        whole_rooms[rand()%16+12][rand()%36+53][4].monster.mname='u';
+        whole_rooms[rand()%16+12][rand()%36+53][4].monster.mname='s';
+        whole_rooms[rand()%16+12][rand()%36+53][4].monster.mname='f';
+        whole_rooms[rand()%16+12][rand()%36+53][4].monster.mname='g';
+    }
+    for (int i=11; i<30; i++){
+        for (int j=51; j<90; j++){
+            if (whole_rooms[i][j][4].monster.mname!='0'){
+
+                whole_rooms[i][j][4].monster.x=i;
+                whole_rooms[i][j][4].monster.y=j;
+                whole_rooms[i][j][4].monster.lifee=5;
+                whole_rooms[i][j][4].monster.movement=0;
+            }
+        }
+    }*/
+
     for (int s=0; s<4; s++){
         for (int i=0; i<40; i++){
             for (int j=0; j<184; j++){
@@ -474,11 +630,11 @@ void makemap(){
             room room1;
             room1.room_number=x;
             room1.type='R';
-            room1.y = rand() % 20;
-            room1.x = rand() % 8;
+            room1.y = rand() % 18+2;
+            room1.x = rand() % 4+2;
             room1.arz = rand() % 8 + 5;
             while (room1.arz + room1.x >= 17) {
-                room1.arz = rand() % 12 + 5;
+                room1.arz = rand() % 8 + 5;
             }
             room1.tool = rand() % 30 + 5;
             while (room1.tool + room1.y >= 55) {
@@ -583,18 +739,19 @@ void makemap(){
             }
             if (coin==1){
                 for (int i=0; i<(rand()%2)+1; i++){
-                room1arr[rand()%(room1.arz-2)+1][rand()%(room1.tool-2)+1]='F';}
+                room1arr[rand()%(room1.arz-2)+1][rand()%(room1.tool-2)+1]='F';
+                room1arr[room1.arz/3][room1.tool/3]='O';
+                }
             }
             coin=(rand()%3)+1;
             if (room1.room_number%3+1==coin){
                 room1.type='E';
             }
             
-            coin=rand()%6+1;
-            if (room1.room_number==coin && s==3){
+            
+            if (room1.room_number==5 && s==3){
                 room1.type='T';
             }
-
             
 
            /* coin=rand()%3;
@@ -664,6 +821,9 @@ void makemap(){
                 if (coin==1){
                     room1arr[rand()%(room1.arz-2)+1][rand()%(room1.tool-2)+1]='g';//giant
                 }
+            }
+            if (room1.type=='T'){
+                room1arr[rand()%(room1.arz-2)+1][rand()%(room1.tool-2)+1]='$';
             }
             
 
@@ -848,8 +1008,8 @@ void updateuser() {
         char *token = strtok(temp, ","); 
 
         if (token && strcmp(token, user.username) == 0) {
-            fprintf(tempFile, "%s,%s,%s,%d,%d\n",
-                    user.username, user.password, user.email, user.gold, user.finished_games);
+            fprintf(tempFile, "%s,%s,%s,%d,%d,%d\n",
+                    user.username, user.password, user.email, user.gold, user.finished_games, user.credit);
             found = 1;
         } else {
             fprintf(tempFile, "%s", line); 
@@ -862,8 +1022,6 @@ void updateuser() {
     remove("users.txt");             
     rename("temp.txt", "users.txt");   
 }
-
-
 
 void losethegame(){
 
@@ -890,6 +1048,51 @@ void losethegame(){
 
 }
 
+void winthegame(){
+
+    char name[50];
+    strcpy(name, user.username);
+    strcat(name, ".txt");
+    FILE *file = fopen(name, "w");
+    fprintf(file, "endofgame");
+    fclose(file);
+    clear();
+    user.finished_games++;
+    user.credit+=user.gold+500;
+    mvprintw(3,3, "You won the game! Your performance was commendable");
+    mvprintw( 5,3, "Your score: %d", user.credit);
+    mvprintw (7, 3, "Press S to go back to the Start Menu");
+    updateuser();
+    char back;
+    while (1){
+        back=getch();
+        if (back=='S'){
+            pregamemenu();
+        }
+    }
+
+}
+
+int countdemon(int nowposx, int nowposy, int s){
+    int m = nowposx-5, n = nowposy;
+    int left = n, right = n, top = m, bottom = m;
+
+    while (whole_rooms[top][n][s].type != ' ' && whole_rooms[top][n][s].type != '#') top--;
+    while (whole_rooms[bottom][n][s].type != ' ' && whole_rooms[bottom][n][s].type != '#') bottom++;
+    while (whole_rooms[m][left][s].type != ' ' && whole_rooms[m][left][s].type != '#') left--;
+    while (whole_rooms[m][right][s].type != ' ' && whole_rooms[m][right][s].type != '#') right++;
+    int counter=0;
+    for (int i = top + 1; i < bottom; i++) {
+        for (int j = left + 1; j < right; j++) {
+            if (whole_rooms[i][j][s].monster.mname == '0')counter++;
+        }
+    }
+    
+    print_map(whole_rooms, s);
+    if (counter==0)return 1;
+    return 0;
+}
+
 
 void play_the_game() {
 
@@ -914,10 +1117,20 @@ void play_the_game() {
     int hungercounter=400;
     int catch;
     int lifeadder=0;
+    int potioncounter=0;
+    int speedpot=0;
     while (conti){
+
+    if(user.potionn!='0') potioncounter++;
+    if (potioncounter==14){
+        user.potionn='0';
+        potioncounter=0;
+    }
+    
     
     how_move= getch();
     mvprintw(1, 100 ,"you have %d life remained", user.life);
+    mvprintw(2,100, "Health = %d  ", hungercounter);
 
      mvprintw(1,1, "                                                                                 ");
      mvprintw(2,1, "                                                                                 ");
@@ -930,7 +1143,11 @@ void play_the_game() {
     }
     if (hungercounter>200){
         lifeadder++;
-        if (lifeadder==5){
+        if (lifeadder==3 && user.potionn=='H'){
+            lifeadder=0;
+            if (user.life<50)user.life++;
+        }
+        else if (lifeadder==5){
             lifeadder=0;
             if (user.life<50)user.life++;
         }
@@ -944,12 +1161,20 @@ void play_the_game() {
             strcpy(name, user.username);
             strcat(name, ".txt");
             file =fopen (name, "w");
-            fprintf (file, "%s,%d,%d,%d,%d,%d,%d,%d,%d\n", user.username, user.food, user.gold, user.life, user.selah[0],user.selah[1],user.selah[2],user.selah[3],user.selah[4]);
-            for (int i = 0; i < 40; i++) {
-                for (int j = 0; j < 184; j++) {
-                    fprintf(file, "%d %c %d. ", whole_rooms[i][j][user.floor].being, whole_rooms[i][j][user.floor].type, whole_rooms[i][j][user.floor].trap);
-                }fprintf(file,"\n");
+            fprintf (file, "%s,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d\n", 
+            user.username, user.food, user.gold, user.life, user.selah[0],user.selah[1],user.selah[2],user.selah[3],user.selah[4],user.credit,
+            user.potion[0], user.potion[1], user.potion[2],user.floor, user );
+            for (int s=0; s<4; s++){
+                for (int i = 0; i < 40; i++) {
+                    for (int j = 0; j < 184; j++) {
+                        fprintf(file, "%d,%c,%d,%c,%d,%d,%d,%d,%c\n", 
+                        whole_rooms[i][j][user.floor].being, whole_rooms[i][j][user.floor].type, whole_rooms[i][j][user.floor].trap, whole_rooms[i][j][user.floor].monster.mname
+                        , whole_rooms[i][j][user.floor].monster.movement, whole_rooms[i][j][user.floor].monster.lifee,
+                         whole_rooms[i][j][user.floor].monster.x, whole_rooms[i][j][user.floor].monster.y, whole_rooms[i][j][user.floor].model);
+                    }
+                }
             }
+            
             //char fullPath[100];
             //getcwd(fullPath, sizeof(fullPath)); // دریافت مسیر فعلی برنامه
             mvprintw(1,1,"File saved in: %s\n", name);
@@ -977,7 +1202,7 @@ void play_the_game() {
             if (user.food>0){
                user.food--; 
                hungercounter+=100;
-               if (hungercounter>150)hungercounter=150;
+               if (hungercounter>250)hungercounter=250;
             }
             else{
               mvprintw(6,1, "you have no foods!");
@@ -995,20 +1220,440 @@ void play_the_game() {
             refresh(); 
             char putornot= getch();
             if (putornot=='Q'){
+                mvprintw(1,3, "Enter the considered weapon                                              ");
+                if (user.weapon=='D')user.selah[0]++;
+                else if (user.weapon=='N')user.selah[3]++;
+                else if (user.weapon== 'W')user.selah[2]++;
                 user.weapon='0';
                 putornot=getch();
-                if (putornot=='D')user.weapon='D';
+                if (putornot=='D' && user.selah[0]>0)
+                {user.weapon='D';
+                user.selah[0]--;}
                 else if (putornot=='M')user.weapon='M';
-                else if (putornot=='W')user.weapon='W';
-                else if (putornot=='N')user.weapon='N';
-                else if (putornot=='S')user.weapon='S';
+                else if (putornot=='W' && user.selah[2]>0){
+                    user.weapon='W';
+                    user.selah[2]--;
+                }
+                else if (putornot=='N' && user.selah[3]>0)
+                {user.weapon='N';
+                user.selah[3]--;
+                }
+                else if (putornot=='S' && user.selah[4]>0)user.weapon='S';
             }
+            getchar();
 
             clear();
             refresh();
             print_map(whole_rooms, user.floor);
             break;
+        
+        case 'Y':
+            clear();
+            print_potion();
+            refresh();
+            char takeornot=getch();
+            if (takeornot=='Q'){
+                mvprintw(1,3,"Enter the considered potion                          ");
+                takeornot=getch();
+                if (takeornot=='H' && user.potion[0]>0){
+                    user.potionn='H';
+                    user.potion[0]--;
+                }
+                else if (takeornot=='C' && user.potion[1]>0){
+                    user.potionn='C';
+                    user.potion[1]--;
+                }
+                else if (takeornot=='V' && user.potion[2]>0){
+                    user.potionn='V';
+                    user.potion[2]--;
+                }
+            }
+            getchar();
+            clear();
+            refresh();
+            print_map(whole_rooms, user.floor);
+            break;
 
+        
+        case ' ':
+            if (user.weapon== 'M' || user.weapon=='S') {
+                if (whole_rooms[nowposx+1-5][nowposy][user.floor].monster.mname!='0'){
+                    if (user.weapon=='M')whole_rooms[nowposx-5+1][nowposy][user.floor].monster.lifee-=5;
+                    else whole_rooms[nowposx-5+1][nowposy][user.floor].monster.lifee-=10;
+                                mvprintw(1,3, "You hit the %c! Its life is %d", whole_rooms[nowposx-5+1][nowposy][user.floor].monster.mname, whole_rooms[nowposx-5+1][nowposy][user.floor].monster.lifee);
+                    if (whole_rooms[nowposx-5+1][nowposy][user.floor].monster.lifee<=0){
+                        mvprintw(1,3 ,"You killed the %c monster                          ", whole_rooms[nowposx-5+1][nowposy][user.floor].monster.mname);
+                        whole_rooms[nowposx-5+1][nowposy][user.floor].monster.mname='0';
+                }}
+                if (whole_rooms[nowposx-5+1][nowposy+1][user.floor].monster.mname!='0'){
+                    if (user.weapon=='M')whole_rooms[nowposx-5+1][nowposy+1][user.floor].monster.lifee-=5;
+                    else whole_rooms[nowposx-5+1][nowposy+1][user.floor].monster.lifee-=10;
+                                mvprintw(1,3, "You hit the %c! Its life is %d", whole_rooms[nowposx-5+1][nowposy+1][user.floor].monster.mname, whole_rooms[nowposx-5+1][nowposy+1][user.floor].monster.lifee);
+                    if (whole_rooms[nowposx-5+1][nowposy+1][user.floor].monster.lifee<=0){
+                        mvprintw(1,3 ,"You killed the %c monster                              ", whole_rooms[nowposx-5+1][nowposy+1][user.floor].monster.mname);
+                        whole_rooms[nowposx-5+1][nowposy+1][user.floor].monster.mname='0';
+                }}
+                if (whole_rooms[nowposx-5+1][nowposy-1][user.floor].monster.mname!='0'){
+                    if (user.weapon=='M')whole_rooms[nowposx-5+1][nowposy-1][user.floor].monster.lifee-=5;
+                    else whole_rooms[nowposx-5+1][nowposy-1][user.floor].monster.lifee-=10;
+                                mvprintw(1,3, "You hit the %c! Its life is %d", whole_rooms[nowposx-5+1][nowposy-1][user.floor].monster.mname, whole_rooms[nowposx-5+1][nowposy-1][user.floor].monster.lifee);
+                    if (whole_rooms[nowposx-5+1][nowposy-1][user.floor].monster.lifee<=0){
+                        mvprintw(1,3 ,"You killed the %c monster                            ", whole_rooms[nowposx-5+1][nowposy-1][user.floor].monster.mname);
+                        whole_rooms[nowposx-5+1][nowposy-1][user.floor].monster.mname='0';
+                }}
+                if (whole_rooms[nowposx-5-1][nowposy-1][user.floor].monster.mname!='0'){
+                    if (user.weapon=='M')whole_rooms[nowposx-5-1][nowposy-1][user.floor].monster.lifee-=5;
+                    else whole_rooms[nowposx-5-1][nowposy-1][user.floor].monster.lifee-=10;
+                                mvprintw(1,3, "You hit the %c! Its life is %d", whole_rooms[nowposx-5-1][nowposy-1][user.floor].monster.mname, whole_rooms[nowposx-5-1][nowposy-1][user.floor].monster.lifee);
+                    if (whole_rooms[nowposx-5-1][nowposy-1][user.floor].monster.lifee<=0){
+                        mvprintw(1,3 ,"You killed the %c monster                            ", whole_rooms[nowposx-5-1][nowposy-1][user.floor].monster.mname);
+                        whole_rooms[nowposx-5-1][nowposy-1][user.floor].monster.mname='0';
+                }}
+                if (whole_rooms[nowposx-5-1][nowposy+1][user.floor].monster.mname!='0'){
+                    if (user.weapon=='M')whole_rooms[nowposx-5-1][nowposy+1][user.floor].monster.lifee-=5;
+                    else whole_rooms[nowposx-5-1][nowposy+1][user.floor].monster.lifee-=10;
+
+                                mvprintw(1,3, "You hit the %c! Its life is %d", whole_rooms[nowposx-5-1][nowposy][user.floor].monster.mname, whole_rooms[nowposx-5-1][nowposy][user.floor].monster.lifee);
+                    if (whole_rooms[nowposx-5-1][nowposy+1][user.floor].monster.lifee<=0){
+                        mvprintw(1,3 ,"You killed the %c monster                          ", whole_rooms[nowposx-5-1][nowposy+1][user.floor].monster.mname);
+                        whole_rooms[nowposx-5-1][nowposy+1][user.floor].monster.mname='0';
+                }}
+                if (whole_rooms[nowposx-5-1][nowposy][user.floor].monster.mname!='0'){
+                    if (user.weapon=='M')whole_rooms[nowposx-5-1][nowposy][user.floor].monster.lifee-=5;
+                    else whole_rooms[nowposx-5-1][nowposy][user.floor].monster.lifee-=10;
+
+                                mvprintw(1,3, "You hit the %c! Its life is %d", whole_rooms[nowposx-5-1][nowposy][user.floor].monster.mname, whole_rooms[nowposx-5-1][nowposy][user.floor].monster.lifee);
+                    if (whole_rooms[nowposx-5-1][nowposy][user.floor].monster.lifee<=0){
+                        mvprintw(1,3 ,"You killed the %c monster                          ", whole_rooms[nowposx-5-1][nowposy][user.floor].monster.mname);
+                        whole_rooms[nowposx-5-1][nowposy][user.floor].monster.mname='0';
+                }}
+                if (whole_rooms[nowposx-5][nowposy-1][user.floor].monster.mname!='0'){
+                    if (user.weapon=='M')whole_rooms[nowposx-5][nowposy-1][user.floor].monster.lifee-=5;
+                    else whole_rooms[nowposx-5][nowposy-1][user.floor].monster.lifee-=10;
+                     mvprintw(1,3, "You hit the %c! Its life is %d", whole_rooms[nowposx-5][nowposy-1][user.floor].monster.mname, whole_rooms[nowposx-5][nowposy-1][user.floor].monster.lifee);
+                    if (whole_rooms[nowposx-5][nowposy-1][user.floor].monster.lifee<=0){
+                        mvprintw(1,3 ,"You killed the %c monster                       ", whole_rooms[nowposx-5][nowposy-1][user.floor].monster.mname);
+                        whole_rooms[nowposx-5][nowposy-1][user.floor].monster.mname='0';
+                }}
+                if (whole_rooms[nowposx-5][nowposy+1][user.floor].monster.mname!='0'){
+                    if (user.weapon=='M')whole_rooms[nowposx-5][nowposy+1][user.floor].monster.lifee-=5;
+                    else whole_rooms[nowposx-5][nowposy+1][user.floor].monster.lifee-=10;
+
+                     mvprintw(1,3, "You hit the %c! Its life is %d", whole_rooms[nowposx-5][nowposy+1][user.floor].monster.mname, whole_rooms[nowposx-5][nowposy+1][user.floor].monster.lifee);
+                    if (whole_rooms[nowposx-5][nowposy+1][user.floor].monster.lifee<=0){
+                        mvprintw(1,3 ,"You killed the %c monster                  ", whole_rooms[nowposx-5][nowposy+1][user.floor].monster.mname);
+                        whole_rooms[nowposx-5][nowposy+1][user.floor].monster.mname='0';
+                }}
+            }
+                else if (user.weapon=='D'){
+
+                    mvprintw(1,3, "Enter the direction");
+                    char direction=getch();
+                    if (direction=='l'){
+                        for (int i=1; i<6; i++){
+                         if (whole_rooms[nowposx-5][nowposy+i][user.floor].monster.mname!='0'){
+                                whole_rooms[nowposx-5][nowposy+i][user.floor].monster.lifee-=12;
+                                user.weapon='0';
+                                mvprintw(1,3, "You hit the %c! Its life is %d", whole_rooms[nowposx-5][nowposy+i][user.floor].monster.mname, whole_rooms[nowposx-5][nowposy+i][user.floor].monster.lifee);
+                            if (whole_rooms[nowposx-5][nowposy+i][user.floor].monster.lifee<=0){
+                                mvprintw(1,3 ,"You killed the %c monster                     ", whole_rooms[nowposx-5][nowposy+i][user.floor].monster.mname);
+                                whole_rooms[nowposx-5][nowposy+i][user.floor].monster.mname='0';
+                            }
+                            break;
+                          }
+                        }
+                          if (user.weapon!='0'){
+                            for (int i=5; 1<i; i--){
+                                if (whole_rooms[nowposx-5][nowposy+i][user.floor].type=='.'){
+                                        whole_rooms[nowposx-5][nowposy+i][user.floor].type='D';
+                                        user.weapon='0';
+                                        
+                                break;
+                                }
+                            }
+                          }             
+                    }
+                    else if (direction=='h'){
+                        for (int i=1; i<6; i++){
+                         if (whole_rooms[nowposx-5][nowposy-i][user.floor].monster.mname!='0'){
+                                whole_rooms[nowposx-5][nowposy-i][user.floor].monster.lifee-=12;
+                                user.weapon='0';
+                                mvprintw(1,3, "You hit the %c! Its life is %d", whole_rooms[nowposx-5][nowposy-i][user.floor].monster.mname, whole_rooms[nowposx-5][nowposy-i][user.floor].monster.lifee);
+                            if (whole_rooms[nowposx-5][nowposy-i][user.floor].monster.lifee<=0){
+                                mvprintw(1,3 ,"You killed the %c monster                   ", whole_rooms[nowposx-5][nowposy-i][user.floor].monster.mname);
+                                whole_rooms[nowposx-5][nowposy-i][user.floor].monster.mname='0';
+                            }
+                            break;
+                          }
+                        }
+                          if (user.weapon!='0'){
+                            for (int i=5; 1<i; i--){
+                                if (whole_rooms[nowposx-5][nowposy-i][user.floor].type=='.'){
+                                        whole_rooms[nowposx-5][nowposy-i][user.floor].type='D';
+                                        user.weapon='0';
+                                        
+                                break;
+                                }
+                            }
+                          }             
+                    }
+                    else if (direction=='k'){
+                        for (int i=1; i<6; i++){
+                         if (whole_rooms[nowposx-5+i][nowposy][user.floor].monster.mname!='0'){
+                                whole_rooms[nowposx-5+i][nowposy][user.floor].monster.lifee-=12;
+                                user.weapon='0';
+                                mvprintw(1,3, "You hit the %c! Its life is %d", whole_rooms[nowposx-5+i][nowposy][user.floor].monster.mname, whole_rooms[nowposx-5+i][nowposy][user.floor].monster.lifee);
+                            if (whole_rooms[nowposx-5+i][nowposy][user.floor].monster.lifee<=0){
+                                mvprintw(1,3 ,"You killed the %c monster                  ", whole_rooms[nowposx-5+i][nowposy][user.floor].monster.mname);
+                                whole_rooms[nowposx-5+i][nowposy][user.floor].monster.mname='0';
+                            }
+                            break;
+                          }
+                        }
+                          if (user.weapon!='0'){
+                            for (int i=5; 1<i; i--){
+                                if (whole_rooms[nowposx-5+i][nowposy][user.floor].type=='.'){
+                                        whole_rooms[nowposx-5+i][nowposy][user.floor].type='D';
+                                        user.weapon='0';
+                                        
+                                break;
+                                }
+                            }
+                          }             
+                    }
+                    else if (direction=='j'){
+                        for (int i=1; i<6; i++){
+                         if (whole_rooms[nowposx-5-i][nowposy][user.floor].monster.mname!='0'){
+                                whole_rooms[nowposx-5-i][nowposy][user.floor].monster.lifee-=12;
+                                user.weapon='0';
+                                mvprintw(1,3, "You hit the %c! Its life is %d", whole_rooms[nowposx-5-i][nowposy][user.floor].monster.mname, whole_rooms[nowposx-5-i][nowposy][user.floor].monster.lifee);
+                            if (whole_rooms[nowposx-5-i][nowposy][user.floor].monster.lifee<=0){
+                                mvprintw(1,3 ,"You killed the %c monster                       ", whole_rooms[nowposx-5-i][nowposy][user.floor].monster.mname);
+                                whole_rooms[nowposx-5-i][nowposy][user.floor].monster.mname='0';
+                            }
+                            break;
+                          }
+                        }
+                          if (user.weapon!='0'){
+                            for (int i=5; 1<i; i--){
+                                if (whole_rooms[nowposx-5-i][nowposy][user.floor].type=='.'){
+                                        whole_rooms[nowposx-5-i][nowposy][user.floor].type='D';
+                                        user.weapon='0';
+                                        
+                                break;
+                                }
+                            }
+                          }             
+                    }
+                }
+
+                else if (user.weapon=='W'){
+
+                    mvprintw(1,3, "Enter the direction");
+                    char direction=getch();
+                    if (direction=='l'){
+                        for (int i=1; i<11; i++){
+                         if (whole_rooms[nowposx-5][nowposy+i][user.floor].monster.mname!='0'){
+                                whole_rooms[nowposx-5][nowposy+i][user.floor].monster.lifee-=15;
+                                user.weapon='0';
+                                mvprintw(1,3, "You hit the %c! Its life is %d", whole_rooms[nowposx-5][nowposy+i][user.floor].monster.mname, whole_rooms[nowposx-5][nowposy+i][user.floor].monster.lifee);
+                            if (whole_rooms[nowposx-5][nowposy+i][user.floor].monster.lifee<=0){
+                                mvprintw(1,3 ,"You killed the %c monster                        ", whole_rooms[nowposx-5][nowposy+i][user.floor].monster.mname);
+                                whole_rooms[nowposx-5][nowposy+i][user.floor].monster.mname='0';
+                            }
+                            break;
+                          }
+                        }
+                          if (user.weapon!='0'){
+                            for (int i=10; 1<i; i--){
+                                if (whole_rooms[nowposx-5][nowposy+i][user.floor].type=='.'){
+                                        whole_rooms[nowposx-5][nowposy+i][user.floor].type='W';
+                                        user.weapon='0';
+                                        
+                                break;
+                                }
+                            }
+                          }             
+                    }
+                    if (direction=='h'){
+                        for (int i=1; i<11; i++){//mvprintw(2,nowposy-i, "v");
+                         if (whole_rooms[nowposx-5][nowposy-i][user.floor].monster.mname!='0'){
+                                whole_rooms[nowposx-5][nowposy-i][user.floor].monster.lifee-=15;
+                                user.weapon='0';
+                                mvprintw(1,3, "You hit the %c! Its life is %d", whole_rooms[nowposx-5][nowposy-i][user.floor].monster.mname, whole_rooms[nowposx-5][nowposy-i][user.floor].monster.lifee);
+                            if (whole_rooms[nowposx-5][nowposy-i][user.floor].monster.lifee<=0){
+                                mvprintw(1,3 ,"You killed the %c monster               ", whole_rooms[nowposx-5][nowposy-i][user.floor].monster.mname);
+                                whole_rooms[nowposx-5][nowposy-i][user.floor].monster.mname='0';
+                            }
+                            break;
+                          }
+                        }
+                          if (user.weapon!='0'){
+                            for (int i=10; 1<i; i--){
+                                if (whole_rooms[nowposx-5][nowposy-i][user.floor].type=='.'){//mvprintw(3,1,"kkkk");
+                                        whole_rooms[nowposx-5][nowposy-i][user.floor].type='W';
+                                        user.weapon='0';
+                                        
+                                break;
+                                }
+                            }
+                          }             
+                    }
+                    if (direction=='k'){
+                        for (int i=1; i<11; i++){
+                         if (whole_rooms[nowposx-5+i][nowposy][user.floor].monster.mname!='0'){
+                                whole_rooms[nowposx-5+i][nowposy][user.floor].monster.lifee-=15;
+                                user.weapon='0';
+                                mvprintw(1,3, "You hit the %c! Its life is %d", whole_rooms[nowposx-5+i][nowposy][user.floor].monster.mname, whole_rooms[nowposx-5+i][nowposy][user.floor].monster.lifee);
+                            if (whole_rooms[nowposx-5+i][nowposy][user.floor].monster.lifee<=0){
+                                mvprintw(1,3 ,"You killed the %c monster                        ", whole_rooms[nowposx-5+i][nowposy][user.floor].monster.mname);
+                                whole_rooms[nowposx-5+i][nowposy][user.floor].monster.mname='0';
+                            }
+                            break;
+                          }
+                        }
+                          if (user.weapon!='0'){
+                            for (int i=10; 1<i; i--){
+                                if (whole_rooms[nowposx-5+i][nowposy][user.floor].type=='.'){
+                                        whole_rooms[nowposx-5+i][nowposy][user.floor].type='W';
+                                        user.weapon='0';
+                                        
+                                break;
+                                }
+                            }
+                          }             
+                    }
+                    if (direction=='j'){
+                        for (int i=1; i<11; i++){
+                         if (whole_rooms[nowposx-5-i][nowposy][user.floor].monster.mname!='0'){
+                                whole_rooms[nowposx-5-i][nowposy][user.floor].monster.lifee-=15;
+                                user.weapon='0';
+
+                                mvprintw(1,3, "You hit the %c! Its life is %d", whole_rooms[nowposx-5-i][nowposy][user.floor].monster.mname, whole_rooms[nowposx-5-i][nowposy][user.floor].monster.lifee);
+                            if (whole_rooms[nowposx-5-i][nowposy][user.floor].monster.lifee<=0){
+                                mvprintw(1,3 ,"You killed the %c monster                  ", whole_rooms[nowposx-5-i][nowposy][user.floor].monster.mname);
+                                whole_rooms[nowposx-5-i][nowposy][user.floor].monster.mname='0';
+                            }
+                            break;
+                          }
+                        }
+                          if (user.weapon!='0'){
+                            for (int i=10; 1<i; i--){
+                                if (whole_rooms[nowposx-5-i][nowposy][user.floor].type=='.'){
+                                        whole_rooms[nowposx-5-i][nowposy][user.floor].type='W';
+                                        user.weapon='0';
+                                        
+                                break;
+                                }
+                            }
+                          }             
+                    }
+                }
+
+                else if (user.weapon=='N'){
+                    mvprintw(1,3, "Enter the direction");
+                    char direction=getch();
+                    if (direction=='l'){
+                        for (int i=1; i<6; i++){
+                         if (whole_rooms[nowposx-5][nowposy+i][user.floor].monster.mname!='0'){
+                                whole_rooms[nowposx-5][nowposy+i][user.floor].monster.lifee-=5;
+                                user.weapon='0';
+
+                                mvprintw(1,3, "You hit the %c! Its life is %d", whole_rooms[nowposx-5][nowposy+i][user.floor].monster.mname, whole_rooms[nowposx-5][nowposy+i][user.floor].monster.lifee);
+                            if (whole_rooms[nowposx-5][nowposy+i][user.floor].monster.lifee<=0){
+                                mvprintw(1,3 ,"You killed the %c monster                 ", whole_rooms[nowposx-5][nowposy+i][user.floor].monster.mname);
+                                whole_rooms[nowposx-5][nowposy+i][user.floor].monster.mname='0';
+                            }
+                            break;
+                          }
+                        }
+                          if (user.weapon!='0'){
+                            for (int i=5; 1<i; i--){
+                                if (whole_rooms[nowposx-5][nowposy+i][user.floor].type=='.'){
+                                        whole_rooms[nowposx-5][nowposy+i][user.floor].type='N';
+                                        user.weapon='0';
+                                        
+                                break;
+                                }
+                            }
+                          }             
+                    }
+                    if (direction=='h'){
+                        for (int i=1; i<6; i++){
+                         if (whole_rooms[nowposx-5][nowposy-i][user.floor].monster.mname!='0'){
+                                whole_rooms[nowposx-5][nowposy-i][user.floor].monster.lifee-=5;
+                                user.weapon='0';
+                                mvprintw(1,3, "You hit the %c! Its life is %d", whole_rooms[nowposx-5][nowposy-i][user.floor].monster.mname, whole_rooms[nowposx-5][nowposy-i][user.floor].monster.lifee);
+                            if (whole_rooms[nowposx-5][nowposy-i][user.floor].monster.lifee<=0){
+                                mvprintw(1,3 ,"You killed the %c monster                     ", whole_rooms[nowposx-5][nowposy-i][user.floor].monster.mname);
+                                whole_rooms[nowposx-5][nowposy-i][user.floor].monster.mname='0';
+                            }
+                            break;
+                          }
+                        }
+                          if (user.weapon!='0'){
+                            for (int i=5; 1<i; i--){
+                                if (whole_rooms[nowposx-5][nowposy-i][user.floor].type=='.'){
+                                        whole_rooms[nowposx-5][nowposy-i][user.floor].type='N';
+                                        user.weapon='0';
+                                        
+                                break;
+                                }
+                            }
+                          }             
+                    }
+                    if (direction=='k'){
+                        for (int i=1; i<6; i++){
+                         if (whole_rooms[nowposx-5+i][nowposy][user.floor].monster.mname!='0'){
+                                whole_rooms[nowposx-5+i][nowposy][user.floor].monster.lifee-=5;
+                                user.weapon='0';
+                                mvprintw(1,3, "You hit the %c! Its life is %d", whole_rooms[nowposx-5+i][nowposy][user.floor].monster.mname, whole_rooms[nowposx-5+i][nowposy][user.floor].monster.lifee);
+                            if (whole_rooms[nowposx-5+i][nowposy][user.floor].monster.lifee<=0){
+                                mvprintw(1,3 ,"You killed the %c monster                       ", whole_rooms[nowposx-5+i][nowposy][user.floor].monster.mname);
+                                whole_rooms[nowposx-5+i][nowposy][user.floor].monster.mname='0';
+                            }
+                            break;
+                          }
+                        }
+                          if (user.weapon!='0'){
+                            for (int i=5; 1<i; i--){
+                                if (whole_rooms[nowposx-5+i][nowposy][user.floor].type=='.'){
+                                        whole_rooms[nowposx-5+i][nowposy][user.floor].type='N';
+                                        user.weapon='0';
+                                        
+                                break;
+                                }
+                            }
+                          }             
+                    }
+                    if (direction=='j'){
+                        for (int i=1; i<6; i++){
+                         if (whole_rooms[nowposx-5-i][nowposy][user.floor].monster.mname!='0'){
+                                whole_rooms[nowposx-5-i][nowposy][user.floor].monster.lifee-=5;
+                                user.weapon='0';
+                                mvprintw(1,3, "You hit the %c! Its life is %d", whole_rooms[nowposx-5-i][nowposy][user.floor].monster.mname, whole_rooms[nowposx-5-i][nowposy][user.floor].monster.lifee);
+                            if (whole_rooms[nowposx-5-i][nowposy][user.floor].monster.lifee<=0){
+                                mvprintw(1,3 ,"You killed the %c monster                      ", whole_rooms[nowposx-5-i][nowposy][user.floor].monster.mname);
+                                whole_rooms[nowposx-5-i][nowposy][user.floor].monster.mname='0';
+                            }
+                            break;
+                          }
+                        }
+                          if (user.weapon!='0'){
+                            for (int i=5; 1<i; i--){
+                                if (whole_rooms[nowposx-5-i][nowposy][user.floor].type=='.'){
+                                        whole_rooms[nowposx-5-i][nowposy][user.floor].type='N';
+                                        user.weapon='0';
+                                        
+                                break;
+                                }
+                            }
+                          }             
+                    }
+                }            
+
+
+            break;
         case 'M' :
             clear();
             for (int i=0; i<40; i++){
@@ -1064,6 +1709,9 @@ void play_the_game() {
                 mvaddch(nowposx, nowposy, '@');
                 if (user.food<5)user.food++;
             }
+            else if (whole_rooms[nowposx-1-5][nowposy][user.floor].type=='$' /*&& countdemon(nowposx, nowposy, user.floor)*/){
+                winthegame();
+            }
             else if (whole_rooms[nowposx-1-5][nowposy][user.floor].type=='='){
                 clear();
                 user.floor++;
@@ -1079,10 +1727,10 @@ void play_the_game() {
                 mvprintw(1,3, "press 1 to take the weapon");
                 catch=getch()-'0';
                 if (catch==1){
-                    if (whole_rooms[nowposx-1-5][nowposy][user.floor].type=='D')user.selah[0]++;
+                    if (whole_rooms[nowposx-1-5][nowposy][user.floor].type=='D')user.selah[0]+=10;
                     else if (whole_rooms[nowposx-1-5][nowposy][user.floor].type=='M')user.selah[1]++;
-                    else if (whole_rooms[nowposx-1-5][nowposy][user.floor].type=='W')user.selah[2]++;
-                    else if (whole_rooms[nowposx-1-5][nowposy][user.floor].type=='N')user.selah[3]++;
+                    else if (whole_rooms[nowposx-1-5][nowposy][user.floor].type=='W')user.selah[2]+=8;
+                    else if (whole_rooms[nowposx-1-5][nowposy][user.floor].type=='N')user.selah[3]+=20;
                     else if (whole_rooms[nowposx-1-5][nowposy][user.floor].type=='S')user.selah[4]++;
                 }
                 nowposx--;
@@ -1192,6 +1840,9 @@ void play_the_game() {
                 mvaddch(nowposx, nowposy, '@');
                 print_map(whole_rooms, user.floor);
             }
+            else if (whole_rooms[nowposx+1-5][nowposy][user.floor].type=='$' /*&& countdemon(nowposx, nowposy, user.floor)*/){
+                winthegame();
+            }
             else if (whole_rooms[nowposx+1-5][nowposy][user.floor].type=='r' || whole_rooms[nowposx+1-5][nowposy][user.floor].type=='R'){
                 if (whole_rooms[nowposx+1-5][nowposy][user.floor].type=='r'){
                     user.gold+=10;
@@ -1225,10 +1876,10 @@ void play_the_game() {
                 mvprintw(1,3, "press 1 to take the weapon");
                 catch=getch()-'0';//mvprintw(1,1,"%d",catch);
                 if (catch==1){
-                    if (whole_rooms[nowposx+1-5][nowposy][user.floor].type=='D')user.selah[0]++;
+                    if (whole_rooms[nowposx+1-5][nowposy][user.floor].type=='D')user.selah[0]+=10;
                     else if (whole_rooms[nowposx+1-5][nowposy][user.floor].type=='M')user.selah[1]++;
-                    else if (whole_rooms[nowposx+1-5][nowposy][user.floor].type=='W')user.selah[2]++;
-                    else if (whole_rooms[nowposx+1-5][nowposy][user.floor].type=='N')user.selah[3]++;
+                    else if (whole_rooms[nowposx+1-5][nowposy][user.floor].type=='W')user.selah[2]+=8;
+                    else if (whole_rooms[nowposx+1-5][nowposy][user.floor].type=='N')user.selah[3]+=20;
                     else if (whole_rooms[nowposx+1-5][nowposy][user.floor].type=='S')user.selah[4]++;
                 }
                 nowposx++;
@@ -1360,6 +2011,9 @@ void play_the_game() {
                 mvaddch(nowposx, nowposy, '@');
                 
             }
+            else if (whole_rooms[nowposx-5][nowposy-1][user.floor].type=='$' /*&& countdemon(nowposx, nowposy, user.floor)*/){
+                winthegame();
+            }
             
             else if (whole_rooms[nowposx-5][nowposy-1][user.floor].type=='F' ){
                 nowposy--;
@@ -1373,10 +2027,10 @@ void play_the_game() {
                 mvprintw(1,3, "press 1 to take the weapon");
                 catch=getch()-'0';
                 if (catch==1){
-                    if (whole_rooms[nowposx-5][nowposy-1][user.floor].type=='D')user.selah[0]++;
+                    if (whole_rooms[nowposx-5][nowposy-1][user.floor].type=='D')user.selah[0]+=10;
                     else if (whole_rooms[nowposx-5][nowposy-1][user.floor].type=='M')user.selah[1]++;
-                    else if (whole_rooms[nowposx-5][nowposy-1][user.floor].type=='W')user.selah[2]++;
-                    else if (whole_rooms[nowposx-5][nowposy-1][user.floor].type=='N')user.selah[3]++;
+                    else if (whole_rooms[nowposx-5][nowposy-1][user.floor].type=='W')user.selah[2]+=8;
+                    else if (whole_rooms[nowposx-5][nowposy-1][user.floor].type=='N')user.selah[3]+=20;
                     else if (whole_rooms[nowposx-5][nowposy-1][user.floor].type=='S')user.selah[4]++;
                 }
                 nowposy--;
@@ -1478,6 +2132,9 @@ void play_the_game() {
             mvaddch(nowposx, nowposy-1, '.');
             mvaddch(nowposx, nowposy, '@');
         }
+        else if (whole_rooms[nowposx-5][nowposy+1][user.floor].type=='$' /*&& countdemon(nowposx, nowposy, user.floor)*/){
+                winthegame();
+            }
         else if (whole_rooms[nowposx-5][nowposy+1][user.floor].type=='r' || whole_rooms[nowposx-5][nowposy+1][user.floor].type=='R'){
                 if (whole_rooms[nowposx-5][nowposy+1][user.floor].type=='r'){
                     user.gold+=10;
@@ -1523,10 +2180,10 @@ void play_the_game() {
                 mvprintw(1,3, "press 1 to take the weapon");
                 catch=getch()-'0'; 
                 if (catch==1){
-                    if (whole_rooms[nowposx-5][nowposy+1][user.floor].type=='D')user.selah[0]++;
+                    if (whole_rooms[nowposx-5][nowposy+1][user.floor].type=='D')user.selah[0]+=10;
                     else if (whole_rooms[nowposx-5][nowposy+1][user.floor].type=='M')user.selah[1]++;
-                    else if (whole_rooms[nowposx-5][nowposy+1][user.floor].type=='W')user.selah[2]++;
-                    else if (whole_rooms[nowposx-5][nowposy+1][user.floor].type=='N')user.selah[3]++;
+                    else if (whole_rooms[nowposx-5][nowposy+1][user.floor].type=='W')user.selah[2]+=8;
+                    else if (whole_rooms[nowposx-5][nowposy+1][user.floor].type=='N')user.selah[3]+=20;
                     else if (whole_rooms[nowposx-5][nowposy+1][user.floor].type=='S')user.selah[4]++;
                 }
                 nowposy++;
@@ -1684,7 +2341,7 @@ void pregamemenu(){
         mvprintw(10, 5, "Choose an option:");
         refresh();
 
-        flushinp();
+        //flushinp();
         scanw("%d", &how_continue);
 
         clear();
@@ -1712,8 +2369,7 @@ void pregamemenu(){
                 setting();  
                 getch();
                 clear();
-                refresh();
-                valid=0;
+                //valid=0;
                 break;
 
          
@@ -1770,7 +2426,7 @@ void interance(){
         }
         mvprintw(3, 5, "password:");
         getnstr (user.password, 49);
-        if (tatabogh(user, file_path)){
+        if (tatabogh(file_path)){
             mvprintw( 5, 5, "Welcome, %s", user.username);
             getch();
             refresh();
@@ -1788,7 +2444,7 @@ void interance(){
         
     }
     user.gold=0;
-        user.finished_games=0;
+        //user.finished_games=0;
         user.food=0;
         user.life=50;
         user.weapon='M';
