@@ -29,6 +29,7 @@ void start_game(){
 
 void resume_game(){
     load_game();
+    play_the_game();
     return ;
 }
 void print_weapon(){
@@ -1163,14 +1164,14 @@ void play_the_game() {
             file =fopen (name, "w");
             fprintf (file, "%s,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d\n", 
             user.username, user.food, user.gold, user.life, user.selah[0],user.selah[1],user.selah[2],user.selah[3],user.selah[4],user.credit,
-            user.potion[0], user.potion[1], user.potion[2],user.floor, user );
+            user.potion[0], user.potion[1], user.potion[2],user.floor, user.finished_games );
             for (int s=0; s<4; s++){
                 for (int i = 0; i < 40; i++) {
                     for (int j = 0; j < 184; j++) {
                         fprintf(file, "%d,%c,%d,%c,%d,%d,%d,%d,%c\n", 
-                        whole_rooms[i][j][user.floor].being, whole_rooms[i][j][user.floor].type, whole_rooms[i][j][user.floor].trap, whole_rooms[i][j][user.floor].monster.mname
-                        , whole_rooms[i][j][user.floor].monster.movement, whole_rooms[i][j][user.floor].monster.lifee,
-                         whole_rooms[i][j][user.floor].monster.x, whole_rooms[i][j][user.floor].monster.y, whole_rooms[i][j][user.floor].model);
+                        whole_rooms[i][j][s].being, whole_rooms[i][j][s].type, whole_rooms[i][j][s].trap, whole_rooms[i][j][s].monster.mname
+                        , whole_rooms[i][j][s].monster.movement, whole_rooms[i][j][s].monster.lifee,
+                         whole_rooms[i][j][s].monster.x, whole_rooms[i][j][s].monster.y, whole_rooms[i][j][s].model);
                     }
                 }
             }
@@ -1715,6 +1716,7 @@ void play_the_game() {
             else if (whole_rooms[nowposx-1-5][nowposy][user.floor].type=='='){
                 clear();
                 user.floor++;
+                mvprintw(1,3,"You entered the %d floor", user.floor+1);
                 apearroom(nowposx, nowposy, user.floor);
                 nowposx--;
                 whole_rooms[nowposx+1-5][nowposy][user.floor].type='.';
@@ -1832,6 +1834,8 @@ void play_the_game() {
             else if (whole_rooms[nowposx+1-5][nowposy][user.floor].type=='='){
                 clear();
                 user.floor++;
+
+                mvprintw(1,3,"You entered the %d floor", user.floor+1);
                 apearroom(nowposx, nowposy, user.floor);
                 nowposx++;
                 whole_rooms[nowposx-1-5][nowposy][user.floor].type='.';
@@ -1983,6 +1987,7 @@ void play_the_game() {
             else if (whole_rooms[nowposx-5][nowposy-1][user.floor].type=='='){
                 clear();
                 user.floor++;
+                mvprintw(1,3,"You entered the %d floor", user.floor+1);
                 apearroom(nowposx, nowposy, user.floor);
                 nowposy--;
                 whole_rooms[nowposx-5][nowposy+1][user.floor].type='.';
@@ -2159,6 +2164,7 @@ void play_the_game() {
         else if (whole_rooms[nowposx-5][nowposy+1][user.floor].type=='='){
                 clear();
                 user.floor++;
+                mvprintw(1,3,"You entered the %d floor", user.floor+1);
                 apearroom(nowposx, nowposy, user.floor);
                 nowposy++;
                 whole_rooms[nowposx-5][nowposy-1][user.floor].type='.';
@@ -2299,29 +2305,27 @@ void load_game(){
     strcpy(name, user.username);
     strcat(name, ".txt");
     file =fopen (name, "r");
-    char line[100];
+    char line[300];
+    char trash[50];
     fgets(line , 100, file);
-    int i=0; 
-    while(line[i]!=','){
-        i++;
-    }i++;
-    int m=0;
-    for (int h=0; h<8; i++){
-        while(line[i]!=','){
-            m*=10;
-            m+=line[i];
-            i++;
-        }i++; 
-        if (h==1)user.food=m;
-        if (h==2)user.gold=m;
-        if (h==3)user.life=m;
-        if (h==4)user.selah[0]=m;
-        if (h==5)user.selah[1]=m;
-        if (h==6)user.selah[2]=m;
-        if (h==7)user.selah[3]=m;
-        if (h==8)user.selah[4]=m;
-        m=0;
+    int selah1, selah2, selah3, selah4, selah0;
+    sscanf(line,"%49[^,],%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d", trash, &user.food, &user.gold, &user.life, &selah0, &selah1, &selah2, &selah3, &selah4, &user.credit,
+            &user.potion[0], &user.potion[1], &user.potion[2], &user.floor, &user.finished_games);
+
+    user.selah[0]=selah0; user.selah[1]=selah1; user.selah[2]=selah2; user.selah[3]=selah3; user.selah[4]=selah4;
+    for (int s=0; s<4; s++){
+        for (int i = 0; i < 40; i++) {
+            for (int j = 0; j < 184; j++) {
+                fgets(line , 100, file);
+                sscanf(line, "%d,%c,%d,%c,%d,%d,%d,%d,%c", 
+                &whole_rooms[i][j][s].being, &whole_rooms[i][j][s].type, &whole_rooms[i][j][s].trap, &whole_rooms[i][j][s].monster.mname
+                , &whole_rooms[i][j][s].monster.movement, &whole_rooms[i][j][s].monster.lifee,
+                    &whole_rooms[i][j][s].monster.x, &whole_rooms[i][j][s].monster.y, &whole_rooms[i][j][s].model);
+            }
+        }
     }
+    
+    
     return;
 }
 void pregamemenu(){
