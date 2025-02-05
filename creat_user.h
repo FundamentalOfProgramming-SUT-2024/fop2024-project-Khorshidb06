@@ -21,12 +21,15 @@ typedef struct {
     int experience;
     int life;
     int food;
+    int foods[4];
     char selah[6];
     int inroom;
     char weapon;
     int floor;
     int potion[6];
     int credit;
+    char color;
+    char potionn;
 } User;
 
 User user;
